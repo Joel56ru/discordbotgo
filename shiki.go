@@ -78,3 +78,32 @@ func ShikiRefreshToken(refresh string, target interface{}) error {
 	}
 	return nil
 }
+
+func ShikiGetTopics(access string, target interface{}) error {
+	spaceClient := &http.Client{
+		Timeout: time.Second * 2,
+	}
+	req, err := http.NewRequest(http.MethodGet, `https://shikimori.one/api/topics?limit=1&forum=news&page=1`, nil)
+	if err != nil {
+		return err
+	}
+
+	//req.Header.Set("User-Agent", "funi-funi")
+	//req.Header.Set("Authorization", `Bearer `+access)
+	res, err := spaceClient.Do(req)
+	if err != nil {
+		return err
+	}
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(body, &target)
+	if err != nil {
+		return err
+	}
+	return nil
+}

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/bwmarrin/discordgo"
 	"github.com/joho/godotenv"
@@ -9,25 +8,23 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 )
 
 var (
-	Token string
+	Token      string
+	TokenShiki string
 )
-
-func init() {
-
-	flag.StringVar(&Token, "t", "OTYzNTczODE1NjY3OTgyMzc2.YlYECw.Ngxs1byGkTuCkInc8hQDc1oWg68", "Bot Token")
-	flag.Parse()
-}
 
 func main() {
 	if err := godotenv.Load(); err != nil {
 		logrus.Fatalf("error loading env variables: %s", err.Error())
 	}
+	Token = os.Getenv("DGU_TOKEN")
+	TokenShiki = os.Getenv("SHIKI_ACCESS_TOKEN")
 	var shikimori Refresh
-	ShikiRefreshToken(os.Getenv("SHIKI_REFRESH_TOKEN"), &shikimori)
+	//ShikiRefreshToken(os.Getenv("SHIKI_REFRESH_TOKEN"), &shikimori)
 	logrus.Println(shikimori)
 	// Create a new Discord session using the provided bot token.
 	dg, err := discordgo.New("Bot " + Token)
@@ -38,7 +35,6 @@ func main() {
 
 	// Register the messageCreate func as a callback for MessageCreate events.
 	dg.AddHandler(messageCreate)
-	dg.AddHandler(messageDELETE)
 
 	// In this example, we only care about receiving message events.
 	dg.Identify.Intents = discordgo.IntentsGuildMessages
@@ -84,5 +80,11 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	// If the message is "pong" reply with "Ping!"
 	if m.Content == "pong" {
 		s.ChannelMessageSend(m.ChannelID, "Ping!")
+	}
+
+	if m.Content == "аниме" {
+		var res []Topic
+		ShikiGetTopics(TokenShiki, &res)
+		s.ChannelMessageSend(m.ChannelID, "https://shikimori.one"+res[0].Forum.Url+"/"+strconv.Itoa(res[0].Id))
 	}
 }

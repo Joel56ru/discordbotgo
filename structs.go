@@ -13,6 +13,8 @@ type Topic struct {
 	TopicTitle string `json:"topic_title"`
 	Body       string `json:"body"`
 	Forum      Forum  `json:"forum"`
+	CreatedAt  string `json:"created_at"`
+	Linked     Linked `json:"linked"`
 }
 type Forum struct {
 	Id        int    `json:"id"`
@@ -20,4 +22,12 @@ type Forum struct {
 	Name      string `json:"name"`
 	Permalink string `json:"permalink"`
 	Url       string `json:"url"`
+}
+type Linked struct {
+	Id    int   `json:"id"`
+	Image Image `json:"image"`
+}
+type Image struct {
+	Original string `json:"original"`
+	Preview  string `json:"preview"`
 }

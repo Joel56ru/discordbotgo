@@ -10,22 +10,24 @@ import (
 	"os/signal"
 	"strconv"
 	"syscall"
+	"time"
 )
 
 var (
-	Token      string
-	TokenShiki string
+	Token       string
+	TokenShiki  string
+	ChannelNews string
+	LastID      int
 )
 
 func main() {
+	ChannelNews = os.Getenv("CHANNELNEWS")
 	if err := godotenv.Load(); err != nil {
 		logrus.Fatalf("error loading env variables: %s", err.Error())
 	}
 	Token = os.Getenv("DGU_TOKEN")
 	TokenShiki = os.Getenv("SHIKI_ACCESS_TOKEN")
-	var shikimori Refresh
-	//ShikiRefreshToken(os.Getenv("SHIKI_REFRESH_TOKEN"), &shikimori)
-	logrus.Println(shikimori)
+
 	// Create a new Discord session using the provided bot token.
 	dg, err := discordgo.New("Bot " + Token)
 	if err != nil {
@@ -38,7 +40,18 @@ func main() {
 
 	// In this example, we only care about receiving message events.
 	dg.Identify.Intents = discordgo.IntentsGuildMessages
+	ticker := time.NewTicker(time.Minute * 10)
 
+	go func() {
+		for {
+			select {
+
+			case t := <-ticker.C:
+				sendNews(dg)
+				fmt.Println("Tick at", t)
+			}
+		}
+	}()
 	// Open a websocket connection to Discord and begin listening.
 	err = dg.Open()
 	if err != nil {
@@ -62,6 +75,40 @@ func messageDELETE(s *discordgo.Session, m *discordgo.MessageDelete) {
 
 }
 
+func sendNews(s *discordgo.Session) {
+	var res []Topic
+	err := ShikiGetTopics(TokenShiki, &res)
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	if LastID == res[0].Id {
+		return
+	}
+	LastID = res[0].Id
+	embed := discordgo.MessageEmbed{
+		URL:         `https://shikimori.one` + res[0].Forum.Url + "/" + strconv.Itoa(res[0].Id),
+		Type:        "rich",
+		Title:       res[0].TopicTitle,
+		Description: res[0].Body,
+		Timestamp:   res[0].CreatedAt,
+		Color:       123222,
+		Footer: &discordgo.MessageEmbedFooter{
+			Text: res[0].Forum.Name,
+		},
+		Image: &discordgo.MessageEmbedImage{
+			URL: "https://kawai.shikimori.one" + res[0].Linked.Image.Original,
+		},
+		Thumbnail: &discordgo.MessageEmbedThumbnail{
+			URL: "https://kawai.shikimori.one" + res[0].Linked.Image.Preview,
+		},
+		Video:    nil,
+		Provider: nil,
+		Author:   nil,
+		Fields:   nil,
+	}
+	s.ChannelMessageSendEmbed(ChannelNews, &embed)
+}
+
 // This function will be called (due to AddHandler above) every time a new
 // message is created on any channel that the authenticated bot has access to.
 func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
@@ -82,9 +129,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, "Ping!")
 	}
 
-	if m.Content == "аниме" {
-		var res []Topic
-		ShikiGetTopics(TokenShiki, &res)
-		s.ChannelMessageSend(m.ChannelID, "https://shikimori.one"+res[0].Forum.Url+"/"+strconv.Itoa(res[0].Id))
+	if m.Content == "новости тут будут" {
+		ChannelNews = m.ChannelID
 	}
 }

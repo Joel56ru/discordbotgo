@@ -43,8 +43,12 @@ type Image struct {
 var (
 	Token       string
 	ChannelNews string
-	LastID      int
+	MainConfig  AppConfig
 )
+
+type AppConfig struct {
+	LastID int `json:"last_id"`
+}
 
 func main() {
 	if err := godotenv.Load(); err != nil {
@@ -52,8 +56,26 @@ func main() {
 	}
 	ChannelNews = os.Getenv("CHANNELNEWS")
 	Token = os.Getenv("DGU_TOKEN")
-	LastID, _ = strconv.Atoi(os.Getenv("LASTID"))
 
+	if _, err := os.Stat("config.json"); os.IsNotExist(err) {
+		MainConfig.LastID, _ = strconv.Atoi(os.Getenv("LASTID"))
+		content, err := json.Marshal(MainConfig)
+		if err != nil {
+			fmt.Println(err)
+		}
+		err = ioutil.WriteFile("config.json", content, 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	content, err := ioutil.ReadFile("config.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = json.Unmarshal(content, &MainConfig)
+	if err != nil {
+		log.Fatal(err)
+	}
 	dg, err := discordgo.New("Bot " + Token)
 	if err != nil {
 		fmt.Println("error creating Discord session,", err)
@@ -63,15 +85,14 @@ func main() {
 	dg.AddHandler(messageCreate)
 
 	dg.Identify.Intents = discordgo.IntentsGuildMessages
-	ticker := time.NewTicker(time.Minute)
+	ticker := time.NewTicker(time.Minute * 10)
 
 	go func() {
 		for {
 			select {
-
-			case t := <-ticker.C:
+			case _ = <-ticker.C:
 				sendNews(dg)
-				fmt.Println("Tick at", t)
+				//fmt.Println("Tick at", t)
 			}
 		}
 	}()
@@ -94,13 +115,20 @@ func sendNews(s *discordgo.Session) {
 	var res []Topic
 	err := ShikiGetTopics(&res)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
-	if LastID == res[0].Id {
+	if MainConfig.LastID == res[0].Id {
 		return
 	}
-	LastID = res[0].Id
-	os.Setenv("LASTID", strconv.Itoa(res[0].Id))
+	MainConfig.LastID = res[0].Id
+	content, err := json.Marshal(MainConfig)
+	if err != nil {
+		fmt.Println(err)
+	}
+	err = ioutil.WriteFile("config.json", content, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
 	embed := discordgo.MessageEmbed{
 		URL:         `https://shikimori.one` + res[0].Forum.Url + "/" + strconv.Itoa(res[0].Id),
 		Type:        "rich",
@@ -141,7 +169,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 
 func ShikiGetTopics(target interface{}) error {
 	spaceClient := &http.Client{
-		Timeout: time.Second * 2,
+		Timeout: time.Second * 10,
 	}
 	req, err := http.NewRequest(http.MethodGet, `https://shikimori.one/api/topics?limit=1&forum=news&page=1`, nil)
 	if err != nil {

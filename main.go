@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -56,7 +57,7 @@ func main() {
 	}
 	ChannelNews = os.Getenv("CHANNELNEWS")
 	Token = os.Getenv("DGU_TOKEN")
-
+	
 	if _, err := os.Stat("config.json"); os.IsNotExist(err) {
 		MainConfig.LastID, _ = strconv.Atoi(os.Getenv("LASTID"))
 		content, err := json.Marshal(MainConfig)
@@ -81,12 +82,12 @@ func main() {
 		fmt.Println("error creating Discord session,", err)
 		return
 	}
-
+	
 	dg.AddHandler(messageCreate)
-
+	
 	dg.Identify.Intents = discordgo.IntentsGuildMessages
 	ticker := time.NewTicker(time.Minute * 10)
-
+	
 	go func() {
 		for {
 			select {
@@ -96,18 +97,18 @@ func main() {
 			}
 		}
 	}()
-
+	
 	err = dg.Open()
 	if err != nil {
 		fmt.Println("error opening connection,", err)
 		return
 	}
-
+	
 	fmt.Println("Bot is now running.  Press CTRL-C to exit.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
-
+	
 	dg.Close()
 }
 
@@ -160,6 +161,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Content == "жив?" {
 		s.ChannelTyping(m.ChannelID)
 		s.ChannelMessageSend(m.ChannelID, "жив!")
+	}
+	if strings.Contains(m.Content, "мац") {
+		s.ChannelMessageSend(m.ChannelID, "мац")
 	}
 	if m.Content == "новости тут будут" {
 		ChannelNews = m.ChannelID

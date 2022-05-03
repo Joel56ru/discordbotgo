@@ -122,7 +122,10 @@ func main() {
 	go func() {
 		for range time.Tick(time.Hour) {
 			if time.Now().Hour() == 8 {
-				text, _ := calend()
+				text, err := calend()
+				if err != nil {
+					dg.ChannelMessageSend("964688607015239771", err.Error())
+				}
 				dg.ChannelMessageSend(ChannelNews, text)
 			}
 		}

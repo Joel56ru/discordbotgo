@@ -3,7 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/PuerkitoBio/goquery"
 	"github.com/bwmarrin/discordgo"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -12,6 +14,7 @@ import (
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -82,17 +85,45 @@ func main() {
 		return
 	}
 
+	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM"))
+	if err != nil {
+		log.Panic(err)
+	}
+
+	bot.Debug = true
+
+	log.Printf("Authorized on account %s", bot.Self.UserName)
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
+
+	go func() {
+		updates := bot.GetUpdatesChan(u)
+
+		for update := range updates {
+			if update.Message != nil { // If we got a message
+				log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
+
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
+				msg.ReplyToMessageID = update.Message.MessageID
+
+				bot.Send(msg)
+			}
+		}
+	}()
 	dg.AddHandler(messageCreate)
 
 	dg.Identify.Intents = discordgo.IntentsGuildMessages
-	ticker := time.NewTicker(time.Minute * 10)
+	go func() {
+		for range time.Tick(time.Minute * 10) {
+			sendNews(dg)
+		}
+	}()
 
 	go func() {
-		for {
-			select {
-			case _ = <-ticker.C:
-				sendNews(dg)
-				//fmt.Println("Tick at", t)
+		for range time.Tick(time.Hour) {
+			if time.Now().Hour() == 8 {
+				text, _ := calend()
+				dg.ChannelMessageSend(ChannelNews, text)
 			}
 		}
 	}()
@@ -161,13 +192,49 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelTyping(m.ChannelID)
 		s.ChannelMessageSend(m.ChannelID, "жив!")
 	}
-	/*if strings.Contains(m.Content, "мац") {
-		s.ChannelMessageSend(m.ChannelID, "мац")
-	}*/
 	if m.Content == "новости тут будут" {
 		ChannelNews = m.ChannelID
 		os.Setenv("CHANNELNEWS", m.ChannelID)
 	}
+	if m.Content == "календарь" {
+		//s.ChannelMessageSend(m.ChannelID, "https://www.calend.ru/img/export/informer.png")
+		a, err := calend()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		s.ChannelMessageSend(m.ChannelID, a)
+	}
+}
+func calend() (string, error) {
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", "https://kakoysegodnyaprazdnik.ru/", nil)
+	if err != nil {
+		return "", err
+	}
+	req.Header.Set("User-Agent", "Discord Bot Animeshnikov")
+	res, err := client.Do(req)
+	defer res.Body.Close()
+	if res.StatusCode != 200 {
+		return res.Status, nil
+	}
+	doc, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		return "", err
+	}
+	var result string
+	count := 0
+	doc.Find("#main_frame .listing .listing_wr .main").Each(func(i int, s *goquery.Selection) {
+		if count < 20 {
+			text := s.Find("span").First().Text()
+			text = strings.Replace(text, "США", ":flag_um:", 1)
+			text = strings.Replace(text, "Япония", ":flag_jp:", 1)
+			result += ":small_blue_diamond: " + text + "\n"
+		}
+		count++
+	})
+	result = "**Праздники сегодня**\n" + result
+	return result, nil
 }
 
 func ShikiGetTopics(target interface{}) error {

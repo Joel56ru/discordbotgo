@@ -215,7 +215,7 @@ func calend() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	req.Header.Set("User-Agent", "Discord Bot Animeshnikov")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.54 Safari/537.36")
 	res, err := client.Do(req)
 	defer res.Body.Close()
 	if res.StatusCode != 200 {

@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"regexp"
 	"strconv"
 	"strings"
 	"syscall"
@@ -207,6 +208,30 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			return
 		}
 		s.ChannelMessageSend(m.ChannelID, a)
+	}
+	reg := `(?i)Сколько по времени (\d+) сер[А-Яа-я]{2}\?`
+	ref, _ := regexp.MatchString(reg, m.Content)
+	if ref {
+		d, _ := regexp.Compile(reg)
+		sch, _ := strconv.Atoi(d.FindStringSubmatch(m.Content)[1])
+		allMin := sch * 24
+		hour := allMin / 60
+		minute := allMin - hour*60
+		future := time.Now()
+		r := future.Add(time.Minute * time.Duration(allMin))
+		var dHour, dMinute string
+		if r.Hour() < 10 {
+			dHour = `0` + strconv.Itoa(r.Hour())
+		} else {
+			dHour = strconv.Itoa(r.Hour())
+		}
+		if r.Minute() < 10 {
+			dMinute = `0` + strconv.Itoa(r.Minute())
+		} else {
+			dMinute = strconv.Itoa(r.Minute())
+		}
+		zone, _ := r.Zone()
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf(`%d часов %d минут (1 серия 24 минуты). Если начать сейчас, то закончим в %s:%s %s`, hour, minute, dHour, dMinute, zone))
 	}
 }
 func calend() (string, error) {

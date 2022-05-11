@@ -231,7 +231,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			dMinute = strconv.Itoa(r.Minute())
 		}
 		zone, _ := r.Zone()
-		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf(`%d %s %d %s (1 серия 24 минуты). Если начать сейчас, то закончим в %s:%s %s`, hour, oconHours(r.Hour()), minute, oconMinutes(r.Minute()), dHour, dMinute, zone))
+		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf(`%d %s %d %s (1 серия 24 минуты). Если начать сейчас, то закончим в %s:%s %s`, hour, oconHours(hour), minute, oconMinutes(minute), dHour, dMinute, zone))
 	}
 }
 
@@ -239,7 +239,7 @@ func oconHours(i int) string {
 	switch i {
 	case 1, 21:
 		return "час"
-	case 2, 3, 4, 22, 23, 24:
+	case 2, 3, 4, 22, 23:
 		return "часа"
 	}
 	return "часов"

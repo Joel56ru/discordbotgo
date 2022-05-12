@@ -112,8 +112,9 @@ func main() {
 		}
 	}()
 	dg.AddHandler(messageCreate)
-
-	dg.Identify.Intents = discordgo.IntentsGuildMessages
+	dg.AddHandler(eventCreate)
+	//dg.Identify.Intents = discordgo.IntentGuildScheduledEvents
+	//dg.Identify.Intents = discordgo.IntentsGuildMessages
 	go func() {
 		for range time.Tick(time.Minute * 10) {
 			sendNews(dg)
@@ -143,7 +144,11 @@ func main() {
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM, os.Interrupt, os.Kill)
 	<-sc
 
-	dg.Close()
+	defer dg.Close()
+}
+
+func eventCreate(s *discordgo.Session, e *discordgo.GuildScheduledEventCreate) {
+	s.ChannelMessageSend("963482521146916867", `https://discord.gg/EFyjYbqn7E?event=`+e.ID)
 }
 
 func sendNews(s *discordgo.Session) {

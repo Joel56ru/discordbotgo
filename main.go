@@ -148,6 +148,9 @@ func main() {
 }
 
 func eventCreate(s *discordgo.Session, e *discordgo.GuildScheduledEventCreate) {
+	if e.Name == "Test" {
+		return
+	}
 	s.ChannelMessageSend("963482521146916867", `https://discord.gg/EFyjYbqn7E?event=`+e.ID)
 }
 

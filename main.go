@@ -200,6 +200,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Author.ID == s.State.User.ID {
 		return
 	}
+	if m.Content == "<:hello:964586747180769401>" {
+		s.MessageReactionAdd(m.ChannelID, m.ID, "hello:964586747180769401")
+	}
 	if m.Content == "жив?" {
 		s.ChannelTyping(m.ChannelID)
 		s.ChannelMessageSend(m.ChannelID, "жив!")

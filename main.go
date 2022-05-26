@@ -205,7 +205,8 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	}
 	match, _ := regexp.MatchString(`https\:\/\/youtu\.be\/.*`, m.Content)
 	match2, _ := regexp.MatchString(`https\:\/\/www\.youtube\.com\/watch.*`, m.Content)
-	if match || match2 {
+	match3, _ := regexp.MatchString(`https\:\/\/coub\.com\/view\/.*`, m.Content)
+	if match || match2 || match3 {
 		s.MessageReactionAdd(m.ChannelID, m.ID, "👍")
 		s.MessageReactionAdd(m.ChannelID, m.ID, "👎")
 	}

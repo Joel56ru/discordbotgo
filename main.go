@@ -203,6 +203,15 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 	if m.Content == "<:hello:964586747180769401>" {
 		s.MessageReactionAdd(m.ChannelID, m.ID, "hello:964586747180769401")
 	}
+	match, _ := regexp.MatchString(`https\:\/\/youtu\.be\/.*`, m.Content)
+	match2, _ := regexp.MatchString(`https\:\/\/www\.youtube\.com\/watch.*`, m.Content)
+	if match || match2 {
+		s.MessageReactionAdd(m.ChannelID, m.ID, "👍")
+		s.MessageReactionAdd(m.ChannelID, m.ID, "👎")
+	}
+	if m.Content == "<:hello:964586747180769401>" {
+		s.MessageReactionAdd(m.ChannelID, m.ID, "hello:964586747180769401")
+	}
 	if m.Content == "жив?" {
 		s.ChannelTyping(m.ChannelID)
 		s.ChannelMessageSend(m.ChannelID, "жив!")

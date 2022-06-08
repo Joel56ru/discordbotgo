@@ -210,6 +210,10 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.MessageReactionAdd(m.ChannelID, m.ID, "👍")
 		s.MessageReactionAdd(m.ChannelID, m.ID, "👎")
 	}
+	vinovat, _ := regexp.MatchString(`(?i).*во вс(е|ё)м виноват (джоел|joel|джоэл).*`, m.Content)
+	if vinovat {
+		s.MessageReactionAdd(m.ChannelID, m.ID, "👎")
+	}
 	if m.Content == "<:hello:964586747180769401>" {
 		s.MessageReactionAdd(m.ChannelID, m.ID, "hello:964586747180769401")
 	}

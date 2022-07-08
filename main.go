@@ -8,6 +8,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/joho/godotenv"
+	"github.com/pemistahl/lingua-go"
 	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"log"
@@ -264,28 +265,30 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		zone, _ := r.Zone()
 		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf(`%d %s %d %s (1 серия 24 минуты). Если начать сейчас, то закончим в %s:%s %s`, hour, oconHours(hour), minute, oconMinutes(minute), dHour, dMinute, zone))
 	}
-
-	/*optionsLangsWhiteList := whatlanggo.Options{
-		Whitelist: map[whatlanggo.Lang]bool{
-			whatlanggo.Azj: true,
-			whatlanggo.Jpn: true,
-			whatlanggo.Tur: true,
-			whatlanggo.Rus: true,
-			whatlanggo.Eng: true,
-		},
-	}*/
-	//info := whatlanggo.DetectLangWithOptions(m.Content, optionsLangsWhiteList)
-	/*info := whatlanggo.DetectLang(m.Content)
-	readyText, err := translateText(info.Iso6391(), m.Content)
-	fmt.Println(info.Iso6391())
-	if err != nil || len(readyText) == 0 || info.Iso6391() == `en` || info.Iso6391() == `ru` || strings.Contains(m.Content, `/`) || strings.Contains(m.Content, `@`) {
+	if strings.Contains(m.Content, `/`) || strings.Contains(m.Content, `@`) {
 		return
 	}
-	s.ChannelMessageSendReply(m.ChannelID, `**`+info.String()+`**: `+readyText, &discordgo.MessageReference{
-		MessageID: m.Message.ID,
-		ChannelID: m.ChannelID,
-		GuildID:   m.GuildID,
-	})*/
+	languages := []lingua.Language{
+		lingua.Azerbaijani,
+		lingua.Japanese,
+		lingua.English,
+	}
+	detector := lingua.NewLanguageDetectorBuilder().FromLanguages(languages...).Build()
+	language, exists := detector.DetectLanguageOf(m.Content)
+	if language.IsoCode639_1().String() == "EN" {
+		return
+	}
+	if exists {
+		readyText, err := translateText(language.IsoCode639_1().String(), m.Content)
+		if err != nil || len(readyText) == 0 {
+			return
+		}
+		s.ChannelMessageSendReply(m.ChannelID, `**`+language.String()+`**: `+readyText, &discordgo.MessageReference{
+			MessageID: m.Message.ID,
+			ChannelID: m.ChannelID,
+			GuildID:   m.GuildID,
+		})
+	}
 }
 
 func translateText(targetLanguage, text string) (string, error) {

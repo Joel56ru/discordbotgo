@@ -9,10 +9,13 @@ require (
 	github.com/abadojack/whatlanggo v1.0.1 // indirect
 	github.com/bas24/googletranslatefree v0.0.0-20220326200502-05ed9e639439 // indirect
 	github.com/bwmarrin/discordgo v0.25.0
+	github.com/chrisport/go-lang-detector v0.0.0-20201227125515-a4270979d85f // indirect
 	github.com/go-telegram-bot-api/telegram-bot-api/v5 v5.5.1
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/joho/godotenv v1.4.0
+	github.com/pemistahl/lingua-go v1.0.5 // indirect
 	github.com/robertkrimen/otto v0.0.0-20211024170158-b87d35c0b86f // indirect
+	github.com/rylans/getlang v0.0.0-20201227074721-9e7f44ff8aa0 // indirect
 	github.com/sirupsen/logrus v1.8.1
 	golang.org/x/net v0.0.0-20220706163947-c90051bbdb60 // indirect
 	golang.org/x/oauth2 v0.0.0-20220630143837-2104d58473e0 // indirect

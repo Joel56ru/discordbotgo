@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/abadojack/whatlanggo"
 	gt "github.com/bas24/googletranslatefree"
 	"github.com/bwmarrin/discordgo"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -266,7 +265,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf(`%d %s %d %s (1 серия 24 минуты). Если начать сейчас, то закончим в %s:%s %s`, hour, oconHours(hour), minute, oconMinutes(minute), dHour, dMinute, zone))
 	}
 
-	optionsLangsWhiteList := whatlanggo.Options{
+	/*optionsLangsWhiteList := whatlanggo.Options{
 		Whitelist: map[whatlanggo.Lang]bool{
 			whatlanggo.Azj: true,
 			whatlanggo.Jpn: true,
@@ -274,8 +273,9 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 			whatlanggo.Rus: true,
 			whatlanggo.Eng: true,
 		},
-	}
-	info := whatlanggo.DetectLangWithOptions(m.Content, optionsLangsWhiteList)
+	}*/
+	//info := whatlanggo.DetectLangWithOptions(m.Content, optionsLangsWhiteList)
+	/*info := whatlanggo.DetectLang(m.Content)
 	readyText, err := translateText(info.Iso6391(), m.Content)
 	fmt.Println(info.Iso6391())
 	if err != nil || len(readyText) == 0 || info.Iso6391() == `en` || info.Iso6391() == `ru` || strings.Contains(m.Content, `/`) || strings.Contains(m.Content, `@`) {
@@ -285,7 +285,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		MessageID: m.Message.ID,
 		ChannelID: m.ChannelID,
 		GuildID:   m.GuildID,
-	})
+	})*/
 }
 
 func translateText(targetLanguage, text string) (string, error) {

@@ -266,7 +266,7 @@ func messageCreate(s *discordgo.Session, m *discordgo.MessageCreate) {
 		s.ChannelMessageSend(m.ChannelID, fmt.Sprintf(`%d %s %d %s (1 серия 24 минуты). Если начать сейчас, то закончим в %s:%s %s`, hour, oconHours(hour), minute, oconMinutes(minute), dHour, dMinute, zone))
 	}
 	if m.ChannelID == "963482521146916867" {
-		if strings.Contains(m.Content, `/`) || strings.Contains(m.Content, `@`) {
+		if strings.Contains(m.Content, `:`) || strings.Contains(m.Content, `>`) || strings.Contains(m.Content, `<`) || strings.Contains(m.Content, `/`) || strings.Contains(m.Content, `@`) {
 			return
 		}
 		languages := []lingua.Language{
